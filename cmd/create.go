@@ -21,7 +21,7 @@ var createCmd = &cobra.Command{
 		if err := generator.GenerateProject(projectName); err != nil {
 			cobra.CheckErr(err)
 		}
-		fmt.Println("Successfully created,projectName:", projectName)
+		fmt.Printf("===============\nSuccessfully created,projectName:%s\n===============", projectName)
 	},
 }
 

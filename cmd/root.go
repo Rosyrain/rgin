@@ -20,11 +20,11 @@ var rootCmd = &cobra.Command{
 	Short: "Generate the development scaffolding of the gin framework",
 	Long: `Here's how to use it:
 	go install https://github.com/rosyrain/rgin
-	rgin create -name projectname`,
+	rgin create -n projectname`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("rgin is using... ...")
+		fmt.Println("Welcome to rgin,use `rgin create -n projectName` to create project.")
 	},
 }
 

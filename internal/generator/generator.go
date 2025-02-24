@@ -100,6 +100,7 @@ func generateFromTemplate(proj *project.Project, tmplPath, outputPath string) er
 	}
 
 	file, err := os.Create(outputFile)
+	fmt.Println("create file:", outputFile)
 	if err != nil {
 		return err
 	}
