@@ -1,4 +1,4 @@
-module rgin
+module github.com/Rosyrain/rgin
 
 go 1.23.0
 

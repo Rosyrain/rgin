@@ -2,10 +2,10 @@ package generator
 
 import (
 	"fmt"
+	"github.com/rosyrain/rgin/internal/project"
+	"github.com/rosyrain/rgin/internal/template"
 	"os"
 	"path/filepath"
-	"rgin/internal/project"
-	"rgin/internal/template"
 )
 
 var (
