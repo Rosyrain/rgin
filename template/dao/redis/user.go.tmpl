@@ -1,0 +1,69 @@
+package redis
+
+import (
+	"errors"
+	"github.com/go-redis/redis"
+	"strconv"
+	"strings"
+	"time"
+)
+
+//示例函数
+
+const (
+	FiveMinutesINSeconds = 5 * 60 //五分钟的时间
+)
+
+var (
+	ErrCaptchaTimeExpire = errors.New("验证码已过期")
+	ErrCaptcha           = errors.New("验证码错误")
+)
+
+// 记录验证码
+func InsertCaptcha(username, captcha string) error {
+	oKey := GetRedisKey(KeyActivateCaptcha)
+	// 将键值对插入 ZSET 集合
+	timestamp := strconv.FormatInt(time.Now().Unix(), 10)
+	v := captcha + "/" + timestamp
+	//println(v)
+	err := client.HSet(oKey, username, v).Err()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// 获取验证码
+func GetCaptcha(username string) (string, error) {
+	//fmt.Println("nil:", nil)
+	oKey := GetRedisKey(KeyActivateCaptcha)
+
+	//根据username获取验证码
+	//fmt.Println(oKey, username)
+
+	c, err := client.HGet(oKey, username).Result()
+	//fmt.Println("获取captcha后的err:", reflect.TypeOf(err), err, "err==nil:", err == nil, "errors.Is(err, nil):", errors.Is(err, nil))
+	if err != nil {
+		if err == redis.Nil {
+			return "", ErrCaptchaTimeExpire
+		}
+		return "", err
+	}
+
+	//fmt.Println("这是标记一")
+	temp := strings.Split(c, "/")
+	//fmt.Println("temp:", temp)
+	captcha, ctime := temp[0], temp[1]
+	//fmt.Println("1 captcha:", captcha)
+
+	t, _ := strconv.ParseInt(ctime, 10, 64)
+	timestamp := time.Now().Unix()
+	if timestamp-t > FiveMinutesINSeconds*100 {
+		return "", ErrCaptchaTimeExpire
+	}
+
+	//fmt.Println("captcha:", captcha)
+	//fmt.Println("返回captcha，nil", captcha, nil)
+	return captcha, nil
+}
