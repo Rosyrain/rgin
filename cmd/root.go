@@ -24,7 +24,7 @@ var rootCmd = &cobra.Command{
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Welcome to rgin,use `rgin create -n projectName` to create project.")
+		fmt.Println("==========\nWelcome to rgin,use `rgin create -n projectName` to create project.\n==========")
 	},
 }
 
@@ -42,9 +42,7 @@ func Execute() {
 
 func init() {
 	//cobra.OnInitialize(initConfig)
-
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is $GOPATH/bin/rgin/conf/config.yaml.tmpl)")
-
 }
 
 func initConfig() {

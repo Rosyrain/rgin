@@ -19,7 +19,9 @@ func init() {
 		fmt.Println("Embedded file:", path)
 		return nil
 	})
-	fmt.Println("embed files failed,err: ", err)
+	if err != nil {
+		fmt.Println("embed files failed,err: ", err)
+	}
 }
 
 func LoadTemplate(name string) (*template.Template, error) {
