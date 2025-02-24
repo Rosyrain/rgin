@@ -5,8 +5,8 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/rosyrain/rgin/internal/generator"
 	"github.com/spf13/cobra"
-	"rgin/internal/generator"
 )
 
 var projectName string
@@ -15,7 +15,7 @@ var projectName string
 var createCmd = &cobra.Command{
 	Use:   "create",
 	Short: "create template(by gin)",
-	Long:  `rgin create -name projectname`,
+	Long:  `rgin create -n projectname`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("create called")
 		if err := generator.GenerateProject(projectName); err != nil {
