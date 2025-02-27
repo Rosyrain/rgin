@@ -37,6 +37,7 @@ var (
 
 		{"middlewares/auth.go", "/middlewares/auth.go.tmpl"},
 		{"middlewares/ratelimit.go", "/middlewares/ratelimit.go.tmpl"},
+		{"middlewares/cores.go", "/middlewares/cores.go.tmpl"},
 
 		{"models/create_table.sql", "/models/create_table.sql.tmpl"},
 		{"models/params.go", "/models/params.go.tmpl"},
