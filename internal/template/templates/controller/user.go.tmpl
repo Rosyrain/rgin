@@ -109,7 +109,7 @@ func UserInfoHandler(c *gin.Context) {
 	username := c.Param("username")
 
 	//2.业务处理
-	_, err := logic.GetUseInfo(username)
+	user, err := logic.GetUseInfo(username)
 	if err != nil {
 		zap.L().Error("logic.GetUseInfo(username)", zap.String("username", username), zap.Error(err))
 		if errors.Is(err, mysql.ErrorUserNotExist) {
@@ -121,5 +121,9 @@ func UserInfoHandler(c *gin.Context) {
 	}
 
 	//3.返回响应
-	ResponseSuccess(c, nil)
+	ResponseSuccess(c, gin.H{
+		"user_id":   user.UserID, //如果ID值大于 2^53-1  userID最大值是2^63-1
+		"user_name": user.Username,
+		"token":     user.Token,
+	})
 }
