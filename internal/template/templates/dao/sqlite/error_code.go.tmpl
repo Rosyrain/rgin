@@ -1,0 +1,17 @@
+package sqlite
+
+import "errors"
+
+var (
+	// ErrNotFound 记录未找到
+	ErrNotFound = errors.New("record not found")
+
+	// ErrDuplicateKey 重复键值
+	ErrDuplicateKey = errors.New("duplicate key value")
+
+	// ErrInvalidInput 无效输入
+	ErrInvalidInput = errors.New("invalid input")
+
+	// ErrDBConnection 数据库连接错误
+	ErrDBConnection = errors.New("database connection error")
+) 

@@ -2,120 +2,114 @@ package generator
 
 import (
 	"fmt"
+	"github.com/rosyrain/rgin/internal/project"
+	"github.com/rosyrain/rgin/internal/template"
 	"os"
 	"path/filepath"
 )
 
+var (
+	// 定义一个文件生成的配置结构
+	fileTemplates = []struct {
+		OutputPath string // 输出文件路径
+		Template   string // 模板文件路径
+	}{
+		{"conf/config.yaml", "/conf/config.yaml.tmpl"},
+
+		{"controller/code.go", "/controller/code.go.tmpl"},
+		{"controller/request.go", "/controller/request.go.tmpl"},
+		{"controller/response.go", "/controller/response.go.tmpl"},
+		{"controller/validator.go", "/controller/validator.go.tmpl"},
+		{"controller/user.go", "/controller/user.go.tmpl"},
+
+		{"dao/sqlite/sqlite.go", "/dao/sqlite/sqlite.go.tmpl"},  // 替换为 SQLite
+		{"dao/sqlite/user.go", "/dao/sqlite/user.go.tmpl"},      // 替换为 SQLite
+		{"dao/sqlite/error_code.go", "/dao/sqlite/error_code.go.tmpl"}, // 替换为 SQLite
+
+		{"dao/redis/redis.go", "/dao/redis/redis.go.tmpl"},
+		{"dao/redis/key.go", "/dao/redis/key.go.tmpl"},
+		{"dao/redis/user.go", "/dao/redis/user.go.tmpl"},
+
+		{"logger/logger.go", "/logger/logger.go.tmpl"},
+
+		{"logic/user.go", "/logic/user.go.tmpl"},
+		{"logic/request.go", "/logic/request.go.tmpl"},
+
+		{"middlewares/auth.go", "/middlewares/auth.go.tmpl"},
+		{"middlewares/ratelimit.go", "/middlewares/ratelimit.go.tmpl"},
+		{"middlewares/cors.go", "/middlewares/cors.go.tmpl"},
+
+		{"models/create_table.sql", "/models/create_table.sql.tmpl"},
+		{"models/params.go", "/models/params.go.tmpl"},
+		{"models/user.go", "/models/user.go.tmpl"},
+
+		{"pkg/jwt/jwt.go", "/pkg/jwt/jwt.go.tmpl"},
+		{"pkg/snowflask/snowflask.go", "/pkg/snowflask/snowflask.go.tmpl"},
+
+		{"router/route.go", "/router/route.go.tmpl"},
+
+		{"settings/settings.go", "/settings/settings.go.tmpl"},
+
+		{"main.go", "/main.go.tmpl"},
+		{"go.mod", "/go.mod.tmpl"},
+		{"go.sum", "/go.sum.tmpl"},
+		{"Dockerfile", "/Dockerfile.tmpl"},
+		{"wait-for.sh", "/wait-for.sh.tmpl"},
+	}
+)
+
 // Options 定义项目初始化选项
 type Options struct {
-	ProjectName  string
-	Database     string // sqlite, mysql, none
-	WithExamples bool
-}
-
-// ComponentOptions 定义组件生成选项
-type ComponentOptions struct {
-	Type string // controller, model, service
-	Name string
+	ProjectName string
 }
 
 // InitProject 初始化新项目
 func InitProject(opts *Options) error {
-	// 创建项目目录
-	if err := os.MkdirAll(opts.ProjectName, 0755); err != nil {
-		return fmt.Errorf("failed to create project directory: %w", err)
+	// 创建项目结构
+	proj := project.NewProject(opts.ProjectName)
+	if err := proj.Create(); err != nil {
+		return fmt.Errorf("create project struct failed: %v", err)
 	}
 
-	// 生成基础结构
-	if err := generateBaseStructure(opts); err != nil {
-		return fmt.Errorf("failed to generate base structure: %w", err)
+	// 生成文件
+	if err := generateFiles(proj); err != nil {
+		return fmt.Errorf("generate files failed: %v", err)
 	}
 
-	// 生成示例代码
-	if opts.WithExamples {
-		if err := generateExamples(opts); err != nil {
-			return fmt.Errorf("failed to generate examples: %w", err)
+	return nil
+}
+
+func generateFiles(proj *project.Project) error {
+	for _, fileConfig := range fileTemplates {
+		// 从配置中提取模板路径和输出路径
+		tmplPath := fileConfig.Template
+		outputPath := fileConfig.OutputPath
+
+		// 调用 generateFromTemplate 函数生成文件
+		if err := generateFromTemplate(proj, tmplPath, outputPath); err != nil {
+			return fmt.Errorf("failed to generate file %s: %w", outputPath, err)
 		}
 	}
-
 	return nil
 }
 
-// AddComponent 添加新组件
-func AddComponent(opts *ComponentOptions) error {
-	// 验证当前目录是否是有效的项目
-	if !isValidProject() {
-		return fmt.Errorf("not a valid rgin project directory")
+func generateFromTemplate(proj *project.Project, tmplPath, outputPath string) error {
+	tmpl, err := template.LoadTemplate(tmplPath)
+	if err != nil {
+		return err
 	}
 
-	// 根据组件类型生成代码
-	switch opts.Type {
-	case "controller":
-		return generateController(opts.Name)
-	case "model":
-		return generateModel(opts.Name)
-	case "service":
-		return generateService(opts.Name)
-	default:
-		return fmt.Errorf("unknown component type: %s", opts.Type)
-	}
-}
-
-// generateBaseStructure 生成基础项目结构
-func generateBaseStructure(opts *Options) error {
-	// 创建基础目录结构
-	dirs := []string{
-		"cmd",
-		"internal/controller",
-		"internal/model",
-		"internal/service",
-		"internal/middleware",
-		"pkg",
-		"api",
-		"config",
+	outputFile := filepath.Join(proj.RootDir, outputPath)
+	if err := os.MkdirAll(filepath.Dir(outputFile), os.ModePerm); err != nil {
+		return err
 	}
 
-	for _, dir := range dirs {
-		if err := os.MkdirAll(filepath.Join(opts.ProjectName, dir), 0755); err != nil {
-			return fmt.Errorf("failed to create directory %s: %w", dir, err)
-		}
+	file, err := os.Create(outputFile)
+	fmt.Println("create file:", outputFile)
+	if err != nil {
+		return err
 	}
+	defer file.Close()
 
-	// TODO: 生成基础文件
-	// 1. main.go
-	// 2. go.mod
-	// 3. config files
-	// 4. README.md
-
-	return nil
-}
-
-// generateExamples 生成示例代码
-func generateExamples(opts *Options) error {
-	// TODO: 实现示例代码生成
-	return nil
-}
-
-// isValidProject 检查当前目录是否是有效的项目
-func isValidProject() bool {
-	// TODO: 实现项目验证逻辑
-	return true
-}
-
-// generateController 生成控制器代码
-func generateController(name string) error {
-	// TODO: 实现控制器生成
-	return nil
-}
-
-// generateModel 生成模型代码
-func generateModel(name string) error {
-	// TODO: 实现模型生成
-	return nil
-}
-
-// generateService 生成服务代码
-func generateService(name string) error {
-	// TODO: 实现服务生成
-	return nil
+	return tmpl.Execute(file, proj)
 }

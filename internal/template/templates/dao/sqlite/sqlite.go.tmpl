@@ -1,0 +1,66 @@
+package sqlite
+
+import (
+	"database/sql"
+	_ "github.com/mattn/go-sqlite3"
+	"log"
+	"path/filepath"
+	"os"
+)
+
+var db *sql.DB
+
+// InitDB 初始化 SQLite 数据库连接
+func InitDB(dbPath string) error {
+	// 确保数据库目录存在
+	if err := os.MkdirAll(filepath.Dir(dbPath), 0755); err != nil {
+		return err
+	}
+
+	// 连接数据库
+	var err error
+	db, err = sql.Open("sqlite3", dbPath)
+	if err != nil {
+		return err
+	}
+
+	// 测试连接
+	if err = db.Ping(); err != nil {
+		return err
+	}
+
+	// 初始化表结构
+	if err = initTables(); err != nil {
+		return err
+	}
+
+	log.Println("SQLite database initialized successfully")
+	return nil
+}
+
+// GetDB 获取数据库连接
+func GetDB() *sql.DB {
+	return db
+}
+
+// Close 关闭数据库连接
+func Close() error {
+	if db != nil {
+		return db.Close()
+	}
+	return nil
+}
+
+// initTables 初始化表结构
+func initTables() error {
+	// 读取 SQL 文件
+	sqlFile := "models/create_table.sql"
+	content, err := os.ReadFile(sqlFile)
+	if err != nil {
+		return err
+	}
+
+	// 执行 SQL 语句
+	_, err = db.Exec(string(content))
+	return err
+} 
