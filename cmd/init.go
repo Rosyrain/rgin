@@ -14,12 +14,37 @@ var (
 // initCmd represents the init command
 var initCmd = &cobra.Command{
 	Use:   "init [project-name]",
-	Short: "Initialize a new Gin project",
-	Long: `Initialize a new Gin project with the recommended project structure and basic setup.
-Examples:
-  rgin init myapp
-  rgin init myapp --with-db sqlite
-  rgin init myapp --with-examples`,
+	Short: "初始化一个新的 Gin 项目",
+	Long: `初始化一个新的 Gin 项目，包含推荐的项目结构和基本设置。
+
+使用示例:
+  1. 创建基础项目:
+     rgin init myapp
+
+  2. 使用 SQLite 数据库:
+     rgin init myapp --with-db sqlite
+
+  3. 包含示例代码:
+     rgin init myapp --with-examples
+
+  4. 完整示例:
+     rgin init myapp --with-db sqlite --with-examples
+
+项目结构:
+  myapp/
+  ├── cmd/          - 命令行入口
+  ├── internal/     - 内部代码
+  │   ├── controller/ - 控制器
+  │   ├── model/    - 数据模型
+  │   └── service/  - 业务服务
+  ├── pkg/         - 公共包
+  ├── api/         - API 文档
+  └── config/      - 配置文件
+
+注意事项:
+  - 项目名称应该是有效的 Go 包名
+  - 默认使用 SQLite 数据库（轻量级，无需配置）
+  - 使用 --with-examples 可以生成带有注释的示例代码`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		projectName := args[0]
