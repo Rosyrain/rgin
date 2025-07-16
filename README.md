@@ -14,12 +14,12 @@
 
 ### 0、快速使用
 
-项目地址：[Rosyrain/rgin at 0.0.1](https://github.com/Rosyrain/rgin/tree/0.0.1)
+项目地址：[Rosyrain/rgin at 0.1.0](https://github.com/Rosyrain/rgin/tree/0.1.0)
 
 如果有帮助到你，希望可以得到你的**star**ヾ(≧▽≦*)o。
 
 ```shell
-go install github.com/rosyrain/rgin
+go install github.com/rosyrain/rgin@v0.1.0
 rgin #检查是否成功安装工具
 rgin create -n projectName #通过更改projectName去生成项目脚手架
 ```
@@ -32,6 +32,7 @@ rgin create -n projectName #通过更改projectName去生成项目脚手架
 ├─dao			//数据库
 │  ├─mysql		//mysql
 │  └─redis		//redis
+|─example       //示例项目(blubell),通过init --with-example生成
 ├─logger		//日志加载
 ├─logic			//逻辑处理函数
 ├─middlewares	//中间件，已配置jwt认证，令牌桶限流
