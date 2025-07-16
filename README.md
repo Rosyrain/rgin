@@ -20,8 +20,11 @@
 
 ```shell
 go install github.com/rosyrain/rgin@0.1.0
-rgin #检查是否成功安装工具
-rgin create -n projectName #通过更改projectName去生成项目脚手架
+rgin -l zh # 全局切换为中文
+rgin init myapp --with-example # --with-example 生成blubell示例代码
+cd myapp
+sqlite3 ./data/app.db < models/create_table.sql #创建sqlite数据库并建表
+go run main.go #启动基础项目
 ```
 
 生成的开发脚手架参考了七米老师的bluebell项目  架构如下(需要设置相关配置mysql/redis便可启动预留的示例)：
