@@ -62,4 +62,4 @@ jobs:
           name: Release ${{ github.event.inputs.tag || github.ref_name }}
           files: dist/**/rgin_*
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+          GITHUB_TOKEN: ${{ secrets.TOKEN }} 
