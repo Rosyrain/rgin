@@ -2,6 +2,8 @@ package controller
 
 import (
 	"errors"
+	"database/sql"
+	"strconv"
 	"github.com/go-playground/validator/v10"
 	"{{ .Name }}/logic"
 	models "{{ .Name }}/models"
@@ -26,7 +28,7 @@ func CreatePostHandler(c *gin.Context) {
 		return
 	}
 	// 1.1 获取当前用户信息（如已集成JWT中间件）
-	userID, userName, err := GetCurrentUser(c)
+	_, _, err := GetCurrentUser(c)
 	if err != nil {
 		ResponseError(c, CodeNeedLogin)
 		return
@@ -47,7 +49,7 @@ func CreatePostHandler(c *gin.Context) {
 // BatchCreatePostsHandler 批量创建帖子（需要鉴权）
 func BatchCreatePostsHandler(c *gin.Context) {
 	// 1. 获取参数和参数校验
-	var posts []*models.Post
+	var posts []*models.ParamPostCreate
 	if err := c.ShouldBindJSON(&posts); err != nil {
 		zap.L().Error("BatchCreatePosts with invalid param", zap.Error(err))
 		ResponseError(c, CodeInvalidParam)
@@ -59,14 +61,12 @@ func BatchCreatePostsHandler(c *gin.Context) {
 		ResponseError(c, CodeNeedLogin)
 		return
 	}
-
-	// 2. 业务处理
+	// 不赋值 p.UserID，直接传 posts
 	if err := logic.BatchCreatePosts(posts); err != nil {
 		zap.L().Error("logic.BatchCreatePosts failed", zap.Error(err))
 		ResponseError(c, CodeServerBusy)
 		return
 	}
-
 	// 3. 返回响应
 	ResponseSuccess(c, nil)
 }
@@ -74,9 +74,41 @@ func BatchCreatePostsHandler(c *gin.Context) {
 // UpdatePostHandler 更新帖子（需要鉴权）
 func UpdatePostHandler(c *gin.Context) {
 	// 1. 获取参数和参数校验
-	p := new(models.ParamPostUpdate)
-	if err := c.ShouldBindJSON(p); err != nil {
-		zap.L().Error("UpdatePost with invalid param", zap.Error(err))
+	postIDStr := c.Param("post_id") // 路由为 /post/:post_id
+	postID, err := strconv.ParseInt(postIDStr, 10, 64)
+	if err != nil {
+		ResponseError(c, CodeInvalidParam)
+		return
+	}
+	var p models.ParamPostUpdate
+	if err := c.ShouldBindJSON(&p); err != nil {
+		ResponseErrorWithMsg(c, CodeInvalidParam, err.Error())
+		return
+	}
+	// 1.1 获取当前用户信息
+	userID, _, err := GetCurrentUser(c)
+	if err != nil {
+		ResponseError(c, CodeNeedLogin)
+		return
+	}
+	p.PostID = postID // 修正为 PostID 字段
+	if err := logic.UpdatePost(&p, userID); err != nil {
+		if errors.Is(err, logic.ErrNoPermission) {
+			ResponseError(c, CodeNoPermission)
+			return
+		}
+		ResponseError(c, CodeServerBusy)
+		return
+	}
+	ResponseSuccess(c, nil)
+}
+
+// DeletePostHandler 删除帖子（需要鉴权）
+func DeletePostHandler(c *gin.Context) {
+	// 1. 获取参数和参数校验
+	postIDStr := c.Param("post_id") // 路由为 /post/:post_id
+	postID, err := strconv.ParseInt(postIDStr, 10, 64)
+	if err != nil {
 		ResponseError(c, CodeInvalidParam)
 		return
 	}
@@ -86,68 +118,36 @@ func UpdatePostHandler(c *gin.Context) {
 		ResponseError(c, CodeNeedLogin)
 		return
 	}
-
 	// 2. 业务处理
-	if err := logic.UpdatePost(p, userID); err != nil {
+	if err := logic.DeletePost(postID, userID); err != nil {
 		if errors.Is(err, logic.ErrNoPermission) {
 			ResponseError(c, CodeNoPermission)
 			return
 		}
-		zap.L().Error("logic.UpdatePost failed", zap.Error(err))
 		ResponseError(c, CodeServerBusy)
 		return
 	}
-
-	// 3. 返回响应
-	ResponseSuccess(c, nil)
-}
-
-// DeletePostHandler 删除帖子（需要鉴权）
-func DeletePostHandler(c *gin.Context) {
-	// 1. 获取参数和参数校验
-	postID := c.Param("post_id") // 假设路由为 /post/:post_id
-	// TODO: 参数转换与校验
-	// 1.1 获取当前用户信息
-	userID, _, err := GetCurrentUser(c)
-	if err != nil {
-		ResponseError(c, CodeNeedLogin)
-		return
-	}
-
-	// 2. 业务处理
-	if err := logic.DeletePost(0, userID); err != nil { // 需将 postID 转为 int64
-		if errors.Is(err, logic.ErrNoPermission) {
-			ResponseError(c, CodeNoPermission)
-			return
-		}
-		zap.L().Error("logic.DeletePost failed", zap.Error(err))
-		ResponseError(c, CodeServerBusy)
-		return
-	}
-
-	// 3. 返回响应
 	ResponseSuccess(c, nil)
 }
 
 // GetPostByIDHandler 获取单个帖子（无需鉴权）
 func GetPostByIDHandler(c *gin.Context) {
-	// 1. 获取参数和参数校验
-	postID := c.Param("post_id") // 假设路由为 /post/:post_id
-	// TODO: 参数转换与校验
-
-	// 2. 业务处理
-	post, err := logic.GetPostByID(0) // 需将 postID 转为 int64
+	postIDStr := c.Param("post_id")
+	postID, err := strconv.ParseInt(postIDStr, 10, 64)
+	if err != nil {
+		ResponseError(c, CodeInvalidParam)
+		return
+	}
+	post, err := logic.GetPostByID(postID)
 	if err != nil {
 		zap.L().Error("logic.GetPostByID failed", zap.Error(err))
-		if errors.Is(err, ErrNoRows) {
+		if errors.Is(err, sql.ErrNoRows) {
 			ResponseError(c, CodeNotFound)
 			return
 		}
 		ResponseError(c, CodeServerBusy)
 		return
 	}
-
-	// 3. 返回响应
 	ResponseSuccess(c, post)
 }
 

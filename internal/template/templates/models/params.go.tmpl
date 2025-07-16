@@ -17,16 +17,24 @@ type ParamLogin struct {
 }
 
 // ParamPostCreate 创建帖子参数
+// AuthorID 由后端自动注入
+// Status 可选，默认为 0
+// example: {"title":"test","content":"xxx"}
 type ParamPostCreate struct {
-	Title   string `json:"title" binding:"required" validate:"min=1,max=128"`   // 帖子标题
-	Content string `json:"content" binding:"required" validate:"min=1,max=8192"` // 帖子内容
+	Title    string `json:"title" binding:"required" validate:"min=1,max=128"`
+	Content  string `json:"content" binding:"required" validate:"min=1,max=8192"`
+	Status   int    `json:"status"` // 可选
 }
 
 // ParamPostUpdate 更新帖子参数
+// PostID 必填，AuthorID 由后端校验
+// Status 可选
+// example: {"post_id":1,"title":"new title","content":"new content","status":1}
 type ParamPostUpdate struct {
-	PostID  int64  `json:"post_id" binding:"required"`                             // 帖子ID
-	Title   string `json:"title" binding:"required" validate:"min=1,max=128"`   // 帖子标题
-	Content string `json:"content" binding:"required" validate:"min=1,max=8192"` // 帖子内容
+	PostID   int64  `json:"post_id" binding:"required"`
+	Title    string `json:"title" binding:"required" validate:"min=1,max=128"`
+	Content  string `json:"content" binding:"required" validate:"min=1,max=8192"`
+	Status   int    `json:"status"`
 }
 
 // ParamPage 分页参数

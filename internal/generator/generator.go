@@ -22,27 +22,36 @@ var (
 		{"controller/response.go", "/controller/response.go.tmpl"},
 		{"controller/validator.go", "/controller/validator.go.tmpl"},
 		{"controller/user.go", "/controller/user.go.tmpl"},
+		{"controller/post.go", "/controller/post.go.tmpl"},
 
 		{"dao/mysql/mysql.go", "/dao/mysql/mysql.go.tmpl"},
 		{"dao/mysql/error_code.go", "/dao/mysql/error_code.go.tmpl"},
-		{"dao/mysql/user.go", "/dao/mysql/user.go.tmpl"},
+
+		{"dao/sqlite/sqlite.go", "/dao/sqlite/sqlite.go.tmpl"},
+		{"dao/sqlite/error_code.go", "/dao/sqlite/error_code.go.tmpl"},
+		{"dao/sqlite/user.go", "/dao/sqlite/user.go.tmpl"},
+		{"dao/sqlite/post.go", "/dao/sqlite/post.go.tmpl"},
 
 		{"dao/redis/redis.go", "/dao/redis/redis.go.tmpl"},
 		{"dao/redis/key.go", "/dao/redis/key.go.tmpl"},
-		{"dao/redis/user.go", "/dao/redis/user.go.tmpl"},
 
 		{"logger/logger.go", "/logger/logger.go.tmpl"},
 
+		{"logic/error_code.go", "/logic/error_code.go.tmpl"},
 		{"logic/user.go", "/logic/user.go.tmpl"},
 		{"logic/request.go", "/logic/request.go.tmpl"},
+		{"logic/post.go", "/logic/post.go.tmpl"},
 
 		{"middlewares/auth.go", "/middlewares/auth.go.tmpl"},
 		{"middlewares/ratelimit.go", "/middlewares/ratelimit.go.tmpl"},
 		{"middlewares/cors.go", "/middlewares/cors.go.tmpl"},
 
 		{"models/create_table.sql", "/models/create_table.sql.tmpl"},
+		{"models/create_table.sql.example", "/models/create_table.sql.example.tmpl"},
+		{"models/params.go.example", "/models/params.go.example.tmpl"},
 		{"models/params.go", "/models/params.go.tmpl"},
 		{"models/user.go", "/models/user.go.tmpl"},
+		{"models/post.go", "/models/post.go.tmpl"},
 
 		{"pkg/jwt/jwt.go", "/pkg/jwt/jwt.go.tmpl"},
 		{"pkg/snowflask/snowflask.go", "/pkg/snowflask/snowflask.go.tmpl"},
@@ -145,6 +154,16 @@ func InitProject(opts *Options) error {
 		}
 	}
 
+	// 项目创建成功后输出引导信息
+	fmt.Println("\n项目创建成功！")
+	fmt.Println("----------------------------------------")
+	fmt.Println("1. 基础项目依赖 SQLite，首次运行前请手动执行 models/create_table.sql 初始化表结构")
+	fmt.Println("   cd", opts.ProjectName)
+	fmt.Println("   sqlite3 ./data/app.db < models/create_table.sql")
+	fmt.Println("2. 已保留 MySQL/Redis 相关连接代码，可按需在 main.go取消对应注释 config填写相关信息")
+	fmt.Println("3. 更多文档和示例请参考 README.md 或 参数 --with-example 生成的 example 目录")
+	fmt.Println("----------------------------------------\n")
+
 	return nil
 }
 
@@ -174,26 +193,34 @@ func generateFromTemplate(proj *project.Project, tmplPath, outputPath string) er
 	}
 
 	file, err := os.Create(outputFile)
-	fmt.Println("create file:", outputFile)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	return tmpl.Execute(file, proj)
+	// 传递 map，包含 Name、RootDir、ModulePath
+	data := map[string]interface{}{
+		"Name":       proj.Name,
+		"RootDir":    proj.RootDir,
+		"ModulePath": proj.ModulePath,
+	}
+	if err := tmpl.Execute(file, data); err != nil {
+		return err
+	}
+	return nil
 }
 
 // copyExampleFiles 复制示例代码文件
 func copyExampleFiles(proj *project.Project) error {
+	exampleRoot := "internal/template/templates/example/bluebell"
 	for _, filePath := range exampleFiles {
-		// 从嵌入的文件系统中读取文件
-		srcFile, err := template.ExampleFS.Open(filePath)
+		srcPath := filepath.Join(exampleRoot, filePath[len("example/"):])
+		srcFile, err := os.Open(srcPath)
 		if err != nil {
-			return fmt.Errorf("failed to open example file %s: %v", filePath, err)
+			return fmt.Errorf("failed to open example file %s: %v", srcPath, err)
 		}
 		defer srcFile.Close()
 
-		// 创建目标文件
 		dstPath := filepath.Join(proj.RootDir, filePath)
 		if err := os.MkdirAll(filepath.Dir(dstPath), os.ModePerm); err != nil {
 			return fmt.Errorf("failed to create directory for %s: %v", dstPath, err)
@@ -205,12 +232,10 @@ func copyExampleFiles(proj *project.Project) error {
 		}
 		defer dstFile.Close()
 
-		// 复制文件内容
 		if _, err := io.Copy(dstFile, srcFile); err != nil {
 			return fmt.Errorf("failed to copy file content to %s: %v", dstPath, err)
 		}
-
-		fmt.Println("copied example file:", dstPath)
+		// 只在 debug 或需要时打印详细信息，否则静默
 	}
 	return nil
 }
