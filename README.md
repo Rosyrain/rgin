@@ -19,7 +19,7 @@
 如果有帮助到你，希望可以得到你的**star**ヾ(≧▽≦*)o。
 
 ```shell
-go install github.com/rosyrain/rgin@v0.1.0
+go install github.com/rosyrain/rgin@0.1.0
 rgin #检查是否成功安装工具
 rgin create -n projectName #通过更改projectName去生成项目脚手架
 ```
