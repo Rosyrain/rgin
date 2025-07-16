@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/rosyrain/rgin/internal/project"
 	"github.com/rosyrain/rgin/internal/template"
+	"github.com/rosyrain/rgin/internal/i18n"
 	"io"
 	"os"
 	"path/filepath"
@@ -155,13 +156,14 @@ func InitProject(opts *Options) error {
 	}
 
 	// 项目创建成功后输出引导信息
-	fmt.Println("\n项目创建成功！")
+	fmt.Println("\n" + i18n.T("project_created_success"))
 	fmt.Println("----------------------------------------")
-	fmt.Println("1. 基础项目依赖 SQLite，首次运行前请手动执行 models/create_table.sql 初始化表结构")
-	fmt.Println("   cd", opts.ProjectName)
-	fmt.Println("   sqlite3 ./data/app.db < models/create_table.sql")
-	fmt.Println("2. 已保留 MySQL/Redis 相关连接代码，可按需在 main.go取消对应注释 config填写相关信息")
-	fmt.Println("3. 更多文档和示例请参考 README.md 或 参数 --with-example 生成的 example 目录")
+	fmt.Println(i18n.T("tip_sqlite"))
+	fmt.Println(i18n.T("tip_sqlite_cmd"), opts.ProjectName)
+	fmt.Println(i18n.T("tip_sqlite_exec"))
+	fmt.Println(i18n.T("tip_mysql_redis"))
+	fmt.Println(i18n.T("tip_docs_example"))
+	fmt.Println(i18n.T("tip_i18n"))
 	fmt.Println("----------------------------------------\n")
 
 	return nil

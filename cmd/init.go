@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/rosyrain/rgin/internal/generator"
+	"github.com/rosyrain/rgin/internal/i18n"
 	"github.com/spf13/cobra"
 )
 
@@ -12,11 +13,8 @@ var (
 
 var initCmd = &cobra.Command{
 	Use:   "init [project_name]",
-	Short: "Initialize a new Gin project",
-	Long: `Initialize a new Gin project with the recommended project structure and best practices.
-For example:
-  rgin init myapp                  # Create a basic project
-  rgin init myapp --with-example   # Create a project with example code`,
+	Short: i18n.T("init_short"),
+	Long:  i18n.T("init_long"),
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		projectName := args[0]
@@ -40,5 +38,5 @@ For example:
 
 func init() {
 	rootCmd.AddCommand(initCmd)
-	initCmd.Flags().BoolVar(&withExample, "with-example", false, "Generate example code")
+	initCmd.Flags().BoolVar(&withExample, "with-example", false, i18n.T("flag_with_example"))
 } 
