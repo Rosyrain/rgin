@@ -14,7 +14,7 @@
 
 ### 0、快速使用
 
-项目地址：[Rosyrain/rgin at 0.1.0](https://github.com/Rosyrain/rgin/tree/0.1.0)
+项目地址：[Rosyrain/rgin at 0.1.1](https://github.com/Rosyrain/rgin/tree/0.1.1)
 
 如果有帮助到你，希望可以得到你的**star**ヾ(≧▽≦*)o。
 
