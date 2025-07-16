@@ -87,7 +87,7 @@ var (
 		"example/dao/mysql/community.go",
 
 		"example/dao/redis/redis.go",
-		"example/dao/redis/key.go",
+		"example/dao/redis/keys.go",
 		"example/dao/redis/post.go",
 		"example/dao/redis/vote.go",
 
@@ -100,7 +100,7 @@ var (
 
 		"example/middlewares/auth.go",
 		"example/middlewares/ratelimit.go",
-		"example/middlewares/cors.go",
+		// "example/middlewares/cors.go", // 文件不存在，移除
 
 		"example/models/create_table.sql",
 		"example/models/params.go",
@@ -109,11 +109,11 @@ var (
 		"example/models/community.go",
 
 		"example/pkg/jwt/jwt.go",
-		"example/pkg/snowflask/snowflask.go",
+		"example/pkg/snowflake/snowflake.go",
 
 		"example/router/route.go",
 
-		"example/settings/settings.go",
+		"example/setting/setting.go",
 
 		"example/main.go",
 		"example/go.mod",

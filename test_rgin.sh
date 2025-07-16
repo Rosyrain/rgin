@@ -15,7 +15,7 @@ echo "[2/5] rgin CLI works."
 # 3. 生成 Gin 项目
 rm -rf testapp
 echo "[3/5] Generating Gin project..."
-./rgin init testapp
+./rgin init testapp --with-example
 cd testapp
 
 # 自动初始化 SQLite 数据库表结构（需已安装sqlite3）

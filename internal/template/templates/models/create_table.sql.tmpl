@@ -1,29 +1,27 @@
 -- 用户表
-DROP TABLE IF EXISTS `user`;
-CREATE TABLE `user` (
-                       id int NOT NULL PRIMARY KEY AUTOINCREMENT,
-                       user_id bigint(20) NOT NULL UNIQUE COMMENT '用户id',
-                       username varchar(64) COLLATE utf8mb4_general_ci NOT NULL UNIQUE COMMENT '用户名',
-                       password varchar(64) COLLATE utf8mb4_general_ci NOT NULL COMMENT '用户密码',
-                       email varchar(64) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '用户邮箱',
-                       gender tinyint(4) NOT NULL DEFAULT '0' COMMENT '用户性别',
-                       bio text DEFAULT NULL COMMENT '个人简介',
-                       `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-                       `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更改时间',
-                       status tinyint(4) NOT NULL DEFAULT '0' COMMENT '用户状态'
+DROP TABLE IF EXISTS user;
+CREATE TABLE IF NOT EXISTS user (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL UNIQUE,
+    username TEXT NOT NULL UNIQUE,
+    password TEXT NOT NULL,
+    email TEXT,
+    status INTEGER DEFAULT 0,
+    create_time TEXT DEFAULT CURRENT_TIMESTAMP,
+    update_time TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 帖子表
-DROP TABLE IF EXISTS `post`;
-CREATE TABLE `post` (
-                         `id` bigint(20) NOT NULL PRIMARY KEY AUTOINCREMENT,
-                         `post_id` bigint(20) NOT NULL UNIQUE COMMENT '帖子id',
-                         `title` varchar(128) COLLATE utf8mb4_general_ci NOT NULL COMMENT '标题',
-                         `content` text COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '内容',
-                         `author_id` bigint(20) NOT NULL COMMENT '作者的用户id',
-                         `status` tinyint(4) NOT NULL DEFAULT '1' COMMENT '帖子状态',
-                         `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-                         `update_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'
+DROP TABLE IF EXISTS post;
+CREATE TABLE IF NOT EXISTS post (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    post_id INTEGER NOT NULL UNIQUE,
+    title TEXT NOT NULL,
+    content TEXT,
+    author_id INTEGER NOT NULL,
+    status INTEGER DEFAULT 1,
+    create_time TEXT DEFAULT CURRENT_TIMESTAMP,
+    update_time TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
 -- TODO: 如需更多表结构请自行扩展
