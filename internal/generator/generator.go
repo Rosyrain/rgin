@@ -7,7 +7,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 var (
@@ -144,11 +143,6 @@ func InitProject(opts *Options) error {
 		if err := copyExampleFiles(proj); err != nil {
 			return fmt.Errorf("copy example files failed: %v", err)
 		}
-
-		// 更新示例代码中的模块名
-		if err := updateExampleModuleName(proj); err != nil {
-			return fmt.Errorf("update example module name failed: %v", err)
-		}
 	}
 
 	return nil
@@ -219,50 +213,4 @@ func copyExampleFiles(proj *project.Project) error {
 		fmt.Println("copied example file:", dstPath)
 	}
 	return nil
-}
-
-// updateExampleModuleName 更新示例代码中的模块名
-func updateExampleModuleName(proj *project.Project) error {
-	// 更新 go.mod 文件
-	goModPath := filepath.Join(proj.RootDir, "example/go.mod")
-	content, err := os.ReadFile(goModPath)
-	if err != nil {
-		return fmt.Errorf("failed to read go.mod: %v", err)
-	}
-
-	// 替换模块名
-	newContent := strings.Replace(string(content), 
-		"module bluebell", 
-		fmt.Sprintf("module %s/example", proj.Name), 
-		1)
-
-	if err := os.WriteFile(goModPath, []byte(newContent), 0644); err != nil {
-		return fmt.Errorf("failed to write go.mod: %v", err)
-	}
-
-	// 更新导入路径
-	return filepath.Walk(filepath.Join(proj.RootDir, "example"), func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		// 只处理 .go 文件
-		if !info.IsDir() && strings.HasSuffix(path, ".go") {
-			content, err := os.ReadFile(path)
-			if err != nil {
-				return fmt.Errorf("failed to read file %s: %v", path, err)
-			}
-
-			// 替换导入路径
-			newContent := strings.Replace(string(content),
-				`"bluebell/`,
-				fmt.Sprintf(`"%s/example/`, proj.Name),
-				-1)
-
-			if err := os.WriteFile(path, []byte(newContent), 0644); err != nil {
-				return fmt.Errorf("failed to write file %s: %v", path, err)
-			}
-		}
-		return nil
-	})
 }
