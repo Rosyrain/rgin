@@ -70,57 +70,57 @@ var (
 
 	// 示例代码文件列表
 	exampleFiles = []string{
-		"example/conf/config.yaml",
-		"example/controller/code.go",
-		"example/controller/request.go",
-		"example/controller/response.go",
-		"example/controller/validator.go",
-		"example/controller/user.go",
-		"example/controller/post.go",
-		"example/controller/community.go",
-		"example/controller/vote.go",
+		"example/conf/config.yaml.example",
+		"example/controller/code.go.example",
+		"example/controller/request.go.example",
+		"example/controller/response.go.example",
+		"example/controller/validator.go.example",
+		"example/controller/user.go.example",
+		"example/controller/post.go.example",
+		"example/controller/community.go.example",
+		"example/controller/vote.go.example",
 
-		"example/dao/mysql/mysql.go",
-		"example/dao/mysql/error_code.go",
-		"example/dao/mysql/user.go",
-		"example/dao/mysql/post.go",
-		"example/dao/mysql/community.go",
+		"example/dao/mysql/mysql.go.example",
+		"example/dao/mysql/error_code.go.example",
+		"example/dao/mysql/user.go.example",
+		"example/dao/mysql/post.go.example",
+		"example/dao/mysql/community.go.example",
 
-		"example/dao/redis/redis.go",
-		"example/dao/redis/keys.go",
-		"example/dao/redis/post.go",
-		"example/dao/redis/vote.go",
+		"example/dao/redis/redis.go.example",
+		"example/dao/redis/keys.go.example",
+		"example/dao/redis/post.go.example",
+		"example/dao/redis/vote.go.example",
 
-		"example/logger/logger.go",
+		"example/logger/logger.go.example",
 
-		"example/logic/user.go",
-		"example/logic/post.go",
-		"example/logic/community.go",
-		"example/logic/vote.go",
+		"example/logic/user.go.example",
+		"example/logic/post.go.example",
+		"example/logic/community.go.example",
+		"example/logic/vote.go.example",
 
-		"example/middlewares/auth.go",
-		"example/middlewares/ratelimit.go",
-		// "example/middlewares/cors.go", // 文件不存在，移除
+		"example/middlewares/auth.go.example",
+		"example/middlewares/ratelimit.go.example",
+		// "example/middlewares/cors.go.example", // 文件不存在，移除
 
-		"example/models/create_table.sql",
-		"example/models/params.go",
-		"example/models/user.go",
-		"example/models/post.go",
-		"example/models/community.go",
+		"example/models/create_table.sql.example",
+		"example/models/params.go.example",
+		"example/models/user.go.example",
+		"example/models/post.go.example",
+		"example/models/community.go.example",
 
-		"example/pkg/jwt/jwt.go",
-		"example/pkg/snowflake/snowflake.go",
+		"example/pkg/jwt/jwt.go.example",
+		"example/pkg/snowflake/snowflake.go.example",
 
-		"example/router/route.go",
+		"example/router/route.go.example",
 
-		"example/setting/setting.go",
+		"example/setting/setting.go.example",
 
-		"example/main.go",
-		"example/go.mod",
-		"example/go.sum",
-		"example/Dockerfile",
-		"example/wait-for.sh",
-		"example/README.md",
+		"example/main.go.example",
+		"example/go.mod.example",
+		"example/go.sum.example",
+		"example/Dockerfile.example",
+		"example/wait-for.sh.example",
+		"example/README.md.example",
 	}
 )
 
