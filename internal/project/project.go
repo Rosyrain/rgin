@@ -25,6 +25,19 @@ var (
 		"pkg/snowflask",
 		"router",
 		"settings",
+		"example", // 添加示例代码目录
+		"example/conf",
+		"example/controller",
+		"example/dao/mysql",
+		"example/dao/redis",
+		"example/logger",
+		"example/logic",
+		"example/middlewares",
+		"example/models",
+		"example/pkg/jwt",
+		"example/pkg/snowflask",
+		"example/router",
+		"example/settings",
 	}
 )
 

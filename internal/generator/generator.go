@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"github.com/rosyrain/rgin/internal/project"
 	"github.com/rosyrain/rgin/internal/template"
+	"io"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 var (
@@ -22,9 +24,9 @@ var (
 		{"controller/validator.go", "/controller/validator.go.tmpl"},
 		{"controller/user.go", "/controller/user.go.tmpl"},
 
-		{"dao/sqlite/sqlite.go", "/dao/sqlite/sqlite.go.tmpl"},  // 替换为 SQLite
-		{"dao/sqlite/user.go", "/dao/sqlite/user.go.tmpl"},      // 替换为 SQLite
-		{"dao/sqlite/error_code.go", "/dao/sqlite/error_code.go.tmpl"}, // 替换为 SQLite
+		{"dao/mysql/mysql.go", "/dao/mysql/mysql.go.tmpl"},
+		{"dao/mysql/error_code.go", "/dao/mysql/error_code.go.tmpl"},
+		{"dao/mysql/user.go", "/dao/mysql/user.go.tmpl"},
 
 		{"dao/redis/redis.go", "/dao/redis/redis.go.tmpl"},
 		{"dao/redis/key.go", "/dao/redis/key.go.tmpl"},
@@ -56,11 +58,67 @@ var (
 		{"Dockerfile", "/Dockerfile.tmpl"},
 		{"wait-for.sh", "/wait-for.sh.tmpl"},
 	}
+
+	// 示例代码文件列表
+	exampleFiles = []string{
+		"example/conf/config.yaml",
+		"example/controller/code.go",
+		"example/controller/request.go",
+		"example/controller/response.go",
+		"example/controller/validator.go",
+		"example/controller/user.go",
+		"example/controller/post.go",
+		"example/controller/community.go",
+		"example/controller/vote.go",
+
+		"example/dao/mysql/mysql.go",
+		"example/dao/mysql/error_code.go",
+		"example/dao/mysql/user.go",
+		"example/dao/mysql/post.go",
+		"example/dao/mysql/community.go",
+
+		"example/dao/redis/redis.go",
+		"example/dao/redis/key.go",
+		"example/dao/redis/post.go",
+		"example/dao/redis/vote.go",
+
+		"example/logger/logger.go",
+
+		"example/logic/user.go",
+		"example/logic/post.go",
+		"example/logic/community.go",
+		"example/logic/vote.go",
+
+		"example/middlewares/auth.go",
+		"example/middlewares/ratelimit.go",
+		"example/middlewares/cors.go",
+
+		"example/models/create_table.sql",
+		"example/models/params.go",
+		"example/models/user.go",
+		"example/models/post.go",
+		"example/models/community.go",
+
+		"example/pkg/jwt/jwt.go",
+		"example/pkg/snowflask/snowflask.go",
+
+		"example/router/route.go",
+
+		"example/settings/settings.go",
+
+		"example/main.go",
+		"example/go.mod",
+		"example/go.sum",
+		"example/Dockerfile",
+		"example/wait-for.sh",
+		"example/README.md",
+	}
 )
 
 // Options 定义项目初始化选项
 type Options struct {
 	ProjectName string
+	WithExample bool // 是否生成示例代码
 }
 
 // InitProject 初始化新项目
@@ -71,9 +129,26 @@ func InitProject(opts *Options) error {
 		return fmt.Errorf("create project struct failed: %v", err)
 	}
 
-	// 生成文件
+	// 生成基础文件
 	if err := generateFiles(proj); err != nil {
 		return fmt.Errorf("generate files failed: %v", err)
+	}
+
+	// 如果需要生成示例代码
+	if opts.WithExample {
+		// 创建 example 目录
+		if err := os.MkdirAll(filepath.Join(proj.RootDir, "example"), os.ModePerm); err != nil {
+			return fmt.Errorf("create example directory failed: %v", err)
+		}
+		
+		if err := copyExampleFiles(proj); err != nil {
+			return fmt.Errorf("copy example files failed: %v", err)
+		}
+
+		// 更新示例代码中的模块名
+		if err := updateExampleModuleName(proj); err != nil {
+			return fmt.Errorf("update example module name failed: %v", err)
+		}
 	}
 
 	return nil
@@ -112,4 +187,82 @@ func generateFromTemplate(proj *project.Project, tmplPath, outputPath string) er
 	defer file.Close()
 
 	return tmpl.Execute(file, proj)
+}
+
+// copyExampleFiles 复制示例代码文件
+func copyExampleFiles(proj *project.Project) error {
+	for _, filePath := range exampleFiles {
+		// 从嵌入的文件系统中读取文件
+		srcFile, err := template.ExampleFS.Open(filePath)
+		if err != nil {
+			return fmt.Errorf("failed to open example file %s: %v", filePath, err)
+		}
+		defer srcFile.Close()
+
+		// 创建目标文件
+		dstPath := filepath.Join(proj.RootDir, filePath)
+		if err := os.MkdirAll(filepath.Dir(dstPath), os.ModePerm); err != nil {
+			return fmt.Errorf("failed to create directory for %s: %v", dstPath, err)
+		}
+
+		dstFile, err := os.Create(dstPath)
+		if err != nil {
+			return fmt.Errorf("failed to create file %s: %v", dstPath, err)
+		}
+		defer dstFile.Close()
+
+		// 复制文件内容
+		if _, err := io.Copy(dstFile, srcFile); err != nil {
+			return fmt.Errorf("failed to copy file content to %s: %v", dstPath, err)
+		}
+
+		fmt.Println("copied example file:", dstPath)
+	}
+	return nil
+}
+
+// updateExampleModuleName 更新示例代码中的模块名
+func updateExampleModuleName(proj *project.Project) error {
+	// 更新 go.mod 文件
+	goModPath := filepath.Join(proj.RootDir, "example/go.mod")
+	content, err := os.ReadFile(goModPath)
+	if err != nil {
+		return fmt.Errorf("failed to read go.mod: %v", err)
+	}
+
+	// 替换模块名
+	newContent := strings.Replace(string(content), 
+		"module bluebell", 
+		fmt.Sprintf("module %s/example", proj.Name), 
+		1)
+
+	if err := os.WriteFile(goModPath, []byte(newContent), 0644); err != nil {
+		return fmt.Errorf("failed to write go.mod: %v", err)
+	}
+
+	// 更新导入路径
+	return filepath.Walk(filepath.Join(proj.RootDir, "example"), func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// 只处理 .go 文件
+		if !info.IsDir() && strings.HasSuffix(path, ".go") {
+			content, err := os.ReadFile(path)
+			if err != nil {
+				return fmt.Errorf("failed to read file %s: %v", path, err)
+			}
+
+			// 替换导入路径
+			newContent := strings.Replace(string(content),
+				`"bluebell/`,
+				fmt.Sprintf(`"%s/example/`, proj.Name),
+				-1)
+
+			if err := os.WriteFile(path, []byte(newContent), 0644); err != nil {
+				return fmt.Errorf("failed to write file %s: %v", path, err)
+			}
+		}
+		return nil
+	})
 }

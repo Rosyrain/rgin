@@ -3,64 +3,42 @@ package cmd
 import (
 	"fmt"
 	"github.com/rosyrain/rgin/internal/generator"
-	"github.com/rosyrain/rgin/internal/i18n"
 	"github.com/spf13/cobra"
 )
 
 var (
-	withDB      string
-	withExample bool
+	withExample bool // 是否生成示例代码
 )
 
-// initCmd represents the init command
 var initCmd = &cobra.Command{
-	Use:   "init [project-name]",
-	Short: "Initialize a new Gin project", // 将由 i18n 系统更新
-	Long:  "Loading...", // 将由 i18n 系统更新
-	Args:  cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
+	Use:   "init [project_name]",
+	Short: "Initialize a new Gin project",
+	Long: `Initialize a new Gin project with the recommended project structure and best practices.
+For example:
+  rgin init myapp                  # Create a basic project
+  rgin init myapp --with-example   # Create a project with example code`,
+	Args: cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
 		projectName := args[0]
-		
-		if i18n.IsChinese() {
-			fmt.Printf("正在创建项目：%s\n", projectName)
-		} else {
-			fmt.Printf("Creating project: %s\n", projectName)
+
+		opts := &generator.Options{
+			ProjectName: projectName,
+			WithExample: withExample,
 		}
-		
-		options := &generator.Options{
-			ProjectName:  projectName,
-			Database:     withDB,
-			WithExamples: withExample,
+
+		if err := generator.InitProject(opts); err != nil {
+			return fmt.Errorf("failed to initialize project: %v", err)
 		}
-		
-		if err := generator.InitProject(options); err != nil {
-			cobra.CheckErr(err)
+
+		fmt.Printf("Successfully created project %s\n", projectName)
+		if withExample {
+			fmt.Println("Example code has been generated in the project")
 		}
-		
-		if i18n.IsChinese() {
-			fmt.Printf("✨ 项目创建成功：%s\n", projectName)
-			fmt.Println("\n后续步骤：")
-			fmt.Printf("  cd %s\n", projectName)
-			fmt.Println("  go mod tidy")
-			fmt.Println("  go run main.go")
-		} else {
-			fmt.Printf("✨ Successfully created project: %s\n", projectName)
-			fmt.Println("\nNext steps:")
-			fmt.Printf("  cd %s\n", projectName)
-			fmt.Println("  go mod tidy")
-			fmt.Println("  go run main.go")
-		}
+		return nil
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(initCmd)
-	
-	if i18n.IsChinese() {
-		initCmd.Flags().StringVar(&withDB, "with-db", "sqlite", "选择数据库 (sqlite/mysql/none)")
-		initCmd.Flags().BoolVar(&withExample, "with-examples", false, "包含示例代码")
-	} else {
-		initCmd.Flags().StringVar(&withDB, "with-db", "sqlite", "Database to use (sqlite/mysql/none)")
-		initCmd.Flags().BoolVar(&withExample, "with-examples", false, "Include example code")
-	}
+	initCmd.Flags().BoolVar(&withExample, "with-example", false, "Generate example code")
 } 

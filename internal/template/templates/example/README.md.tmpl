@@ -1,0 +1,88 @@
+# Bluebell 项目示例代码
+
+这是一个完整的 Gin 框架项目示例，基于七米老师的 bluebell 项目改造而来。该示例展示了如何使用 Gin 框架构建一个功能完整的 Web 应用。
+
+## 项目特性
+
+- 完整的用户认证系统（注册、登录、JWT认证）
+- 社区功能（创建社区、社区列表、社区详情）
+- 帖子管理（发帖、帖子列表、帖子详情）
+- 投票功能
+- Redis 缓存集成
+- MySQL 数据库操作
+- 统一的错误处理
+- 中间件使用示例（JWT认证、限流、CORS）
+- 项目配置管理
+- 结构化日志
+- Docker 部署支持
+
+## 目录结构
+
+```
+.
+├── conf/           # 配置文件
+├── controller/     # 控制器层
+├── dao/           # 数据访问层
+│   ├── mysql/     # MySQL 数据库操作
+│   └── redis/     # Redis 缓存操作
+├── logger/        # 日志配置
+├── logic/         # 业务逻辑层
+├── middlewares/   # 中间件
+├── models/        # 数据模型
+├── pkg/           # 工具包
+│   ├── jwt/       # JWT 工具
+│   └── snowflask/ # ID 生成器
+├── router/        # 路由配置
+├── settings/      # 配置加载
+└── main.go        # 程序入口
+```
+
+## 快速开始
+
+1. 配置数据库
+   - 修改 `conf/config.yaml` 中的 MySQL 和 Redis 配置
+   - 执行 `models/create_table.sql` 创建数据库表
+
+2. 运行项目
+   ```bash
+   cd example
+   go mod tidy
+   go run main.go
+   ```
+
+3. 测试接口
+   - 注册：POST /api/v1/signup
+   - 登录：POST /api/v1/login
+   - 创建帖子：POST /api/v1/post
+   - 获取帖子列表：GET /api/v1/posts
+
+## API 文档
+
+项目集成了 Swagger 文档，运行项目后访问：http://localhost:8888/swagger/index.html
+
+## 注意事项
+
+1. 这是一个示例项目，展示了 Gin 框架的主要使用方式
+2. 生产环境使用前需要：
+   - 修改配置文件中的敏感信息
+   - 加强安全性措施
+   - 优化性能配置
+   - 添加更多的错误处理和日志记录
+
+## 学习要点
+
+1. 项目结构设计
+2. 中间件的使用
+3. 数据库操作
+4. 缓存使用
+5. 认证授权
+6. 错误处理
+7. 配置管理
+8. 日志记录
+
+## 参考资料
+
+- [Gin 框架文档](https://gin-gonic.com/docs/)
+- [Go-MySQL-Driver](https://github.com/go-sql-driver/mysql)
+- [go-redis](https://github.com/go-redis/redis)
+- [jwt-go](https://github.com/golang-jwt/jwt) 

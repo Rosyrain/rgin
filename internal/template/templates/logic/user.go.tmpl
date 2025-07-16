@@ -1,172 +1,48 @@
 package logic
 
 import (
-	"errors"
-	"fmt"
-	"{{ .Name }}/dao/mysql"
-	"{{ .Name }}/dao/redis"
-	"{{ .Name }}/models"
-	"{{ .Name }}/pkg/jwt"
-	snowflake "{{ .Name }}/pkg/snowflask"
+	"{{.ModuleName}}/dao/mysql"
+	"{{.ModuleName}}/models"
 )
 
-// 示例函数
-
-const secret = "liweizhou.com"
-const key = "0123456789abcdef"
-
-//var key = []byte{
-//	0x2B, 0x7E, 0x15, 0x16,
-//	0x28, 0xAE, 0xD2, 0xA6,
-//	0xAB, 0xF7, 0x15, 0x88,
-//	0x09, 0xCF, 0x4F, 0x3C,
-//}
-
-//存放业务逻辑的代码
-
-func SignUp(p *models.ParamSignUp) (err error) {
-	//判断用户存不存在
-	//已存在
-	if err = mysql.CheckUserExist(p.Username); err != nil {
-		if !errors.Is(err, mysql.ErrorUserNotExist) {
-			//都是返回err，直接整合起来
-
-			//if errors.Is(err,mysql.ErrorChunkExist){
-			//	return err
-			//}else{
-			//	return err
-			//}
-			return err
-		}
-	}
-
-	//判断验证码是否正确
-	captcha, err := redis.GetCaptcha(p.Username)
-	//fmt.Println(captcha, reflect.TypeOf(err))
-	if err != nil {
-		if errors.Is(err, redis.ErrCaptchaTimeExpire) {
-			return redis.ErrCaptchaTimeExpire
-		}
+// SignUp 用户注册
+func SignUp(p *models.ParamSignUp) error {
+	// 1. 检查用户是否存在
+	if err := mysql.CheckUserExist(p.Username); err != nil {
 		return err
 	}
 
-	//fmt.Println(captcha, "   11111  ", p.Captcha)
-	if captcha != p.Captcha {
-		return redis.ErrCaptcha
-	}
+	// 2. 生成用户ID
+	// 提示: 可以使用 snowflake 包生成分布式唯一ID
+	// 参考示例代码中的 pkg/snowflake/snowflake.go
+	userID := int64(0) // 替换为你的ID生成方式
 
-	//生成UID
-	userID := snowflake.GenID()
-
-	//构造一个User实例
-	u := models.User{
+	// 3. 创建用户
+	user := &models.User{
 		UserID:   userID,
 		Username: p.Username,
 		Password: p.Password,
-		Email:    p.Email,
-		Gender:   p.Gender,
-		Status:   1,
 	}
 
-	//保存进数据库
-	return mysql.InsertUser(&u)
+	// 4. 保存到数据库
+	return mysql.InsertUser(user)
 }
 
-// Activate	完成激活认证
-func Captcha(p *models.ParamActivate) error {
-	//发送验证码邮件
-	//对参数进行加密
-	//param := p.Username + p.UserID
-	//secretParam := encryptParam(param)
-	//secUsername, err := encrypt([]byte(key), []byte(p.Username))
-	//if err != nil {
-	//	fmt.Println("加密失败")
-	//}
-	//secUserID, err := encrypt([]byte(key), []byte(p.UserID))
-	//fmt.Println(secUsername, secUserID)
-
-	//生成验证码
-	captcha, _ := CreateCaptcha()
-
-	//将验证码储存到redis缓存中
-	if err := redis.InsertCaptcha(p.Username, captcha); err != nil {
-		return nil
-	}
-
-	//发送邮件
-	/*
-	if err := email.MainSendEmail(p.Username, captcha, p.Email); err != nil {
-		return err
-	}
-	*/
-	return nil
-}
-
-func Login(p *models.ParamLogin) (user *models.User, err error) {
-	user = &models.User{
+// Login 用户登录
+func Login(p *models.ParamLogin) (token string, err error) {
+	user := &models.User{
 		Username: p.Username,
 		Password: p.Password,
 	}
 
-	//传递的是一个指针，就能拿到user.UserID
+	// 1. 验证用户名和密码
 	if err := mysql.Login(user); err != nil {
-		return nil, err
+		return "", err
 	}
 
-	//生成JWT
-	token, err := jwt.GenToken(user.UserID, user.Username)
-	if err != nil {
-		return
-	}
-	user.Token = token
-	return
-}
-
-func GetUseInfo(username string) (u *models.User, err error) {
-	//判断用户是否存在
-	err = mysql.CheckUserExist(username)
-	//判断用户不存在则返回，已存在则跳过
-	if errors.Is(err, mysql.ErrorUserNotExist) {
-		return nil, err
-	}
-	//如果不是用户存在的错误，则返回err
-	if !errors.Is(err, mysql.ErrorUserExist) {
-		return nil, err
-	}
-
-	//获取信息并返回
-	return mysql.GetUserByUsername(username)
-}
-
-func UpdateUserInfo(p *models.ParamUpdateUserInfo) (err error) {
-	//判断用户是否存在
-	fmt.Println(p.UserId)
-	if err = mysql.CheckUserExistByUID(p.UserId); err != nil {
-		if !errors.Is(err, mysql.ErrorUserExist) {
-			//无论是mysql的err还是用户不存在的err都直接返回
-			return err
-		}
-	}
-
-	//更改数据
-	//判断是否更改关键数据
-	if p.Order == "password" {
-		//判断验证码是否正确
-		captcha, err := redis.GetCaptcha(p.UserName)
-		//fmt.Println(captcha, reflect.TypeOf(err), err, "errors.Is(err, nil):", errors.Is(err, nil))
-		if err != nil {
-			if errors.Is(err, redis.ErrCaptchaTimeExpire) {
-				return redis.ErrCaptchaTimeExpire
-			}
-			return err
-		}
-		//fmt.Println(captcha, "   11111  ", p.Captcha)
-		if captcha != p.Captcha {
-			return redis.ErrCaptcha
-		}
-		return mysql.UpdateUserinfo(p.Order, p.OldContent, p.NewContent, p.UserId)
-	} else {
-		return mysql.UpdateUserinfo(p.Order, p.OldContent, p.NewContent, p.UserId)
-	}
+	// 2. 生成认证token
+	// 提示: 可以使用 jwt 包生成用户认证token
+	// 参考示例代码中的 pkg/jwt/jwt.go
+	return "your-token-here", nil
 }
 

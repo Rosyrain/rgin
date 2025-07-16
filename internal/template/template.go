@@ -10,6 +10,9 @@ import (
 //go:embed templates/*
 var templateFS embed.FS
 
+//go:embed templates/example/*
+var ExampleFS embed.FS
+
 func init() {
 	// 遍历检查嵌入的模板
 	err := fs.WalkDir(templateFS, ".", func(path string, d fs.DirEntry, err error) error {
@@ -22,11 +25,21 @@ func init() {
 	if err != nil {
 		fmt.Println("embed files failed,err: ", err)
 	}
+
+	// 遍历检查嵌入的示例代码
+	err = fs.WalkDir(ExampleFS, ".", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		fmt.Println("Embedded example file:", path)
+		return nil
+	})
+	if err != nil {
+		fmt.Println("embed example files failed,err: ", err)
+	}
 }
 
 func LoadTemplate(name string) (*template.Template, error) {
-
-	//tmplPath := filepath.Join("templates", name) // 使用此方法会导致错误
 	tmplPath := "templates" + name
 	fmt.Println("path: ", tmplPath)
 	data, err := templateFS.ReadFile(tmplPath)
