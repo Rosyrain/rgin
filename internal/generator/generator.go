@@ -114,13 +114,20 @@ var (
 		"example/router/route.go.example",
 
 		"example/setting/setting.go.example",
-
+		
 		"example/main.go.example",
 		"example/go.mod.example",
 		"example/go.sum.example",
 		"example/Dockerfile.example",
+		"example/Dockerfile.back.example",
+		"example/docker-compose.yml.example",
 		"example/wait-for.sh.example",
+		"example/Makefile.example",
 		"example/README.md.example",
+		"example/Project.md.example",
+		"example/nginx.conf.example",
+		"example/nginx2.conf.example",
+
 	}
 )
 
@@ -214,10 +221,11 @@ func generateFromTemplate(proj *project.Project, tmplPath, outputPath string) er
 
 // copyExampleFiles 复制示例代码文件
 func copyExampleFiles(proj *project.Project) error {
-	exampleRoot := "internal/template/templates/example/bluebell"
+	exampleRoot := "templates/example/bluebell"
 	for _, filePath := range exampleFiles {
 		srcPath := filepath.Join(exampleRoot, filePath[len("example/"):])
-		srcFile, err := os.Open(srcPath)
+		//fmt.Println("DEBUG: trying to open", srcPath)
+		srcFile, err := template.ExampleFS().Open(srcPath)
 		if err != nil {
 			return fmt.Errorf("failed to open example file %s: %v", srcPath, err)
 		}
@@ -237,7 +245,6 @@ func copyExampleFiles(proj *project.Project) error {
 		if _, err := io.Copy(dstFile, srcFile); err != nil {
 			return fmt.Errorf("failed to copy file content to %s: %v", dstPath, err)
 		}
-		// 只在 debug 或需要时打印详细信息，否则静默
 	}
 	return nil
 }

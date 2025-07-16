@@ -10,6 +10,13 @@ import (
 //go:embed templates/*
 var templateFS embed.FS
 
+//go:embed templates/example/bluebell/*.* templates/example/bluebell/**/*
+var exampleFS embed.FS
+
+func ExampleFS() fs.FS {
+	return exampleFS
+}
+
 // 已去除对 templates/example/* 的 embed，避免跨 module 报错
 
 func init() {
@@ -35,4 +42,15 @@ func LoadTemplate(name string) (*template.Template, error) {
 	}
 
 	return template.New(name).Parse(string(data))
+}
+
+func ListEmbedFiles() {
+	fs.WalkDir(exampleFS, ".", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			fmt.Println("EMBED ERR:", err)
+			return nil
+		}
+		fmt.Println("EMBED:", path)
+		return nil
+	})
 }

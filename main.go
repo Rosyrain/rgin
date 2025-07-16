@@ -6,9 +6,11 @@ package main
 import (
 	"os"
 	"github.com/rosyrain/rgin/cmd"
+	"github.com/rosyrain/rgin/internal/template"
 )
 
 func main() {
+	template.ListEmbedFiles() // 调试用，输出 embed 的所有文件
 	// 优先处理全局语言切换
 	if len(os.Args) == 3 && (os.Args[1] == "-l" || os.Args[1] == "--lang") {
 		lang := os.Args[2]
