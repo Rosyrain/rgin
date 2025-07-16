@@ -1,0 +1,68 @@
+package logic
+
+import (
+	"errors"
+	"{{.ModuleName}}/dao/sqlite"
+	"{{.ModuleName}}/models"
+)
+
+var ErrNoPermission = errors.New("no permission to operate this post")
+
+// CreatePost 创建帖子业务逻辑
+func CreatePost(p *models.ParamPostCreate) error {
+	post := &models.Post{
+		Title:   p.Title,
+		Content: p.Content,
+	}
+	return sqlite.InsertPost(post)
+}
+
+// BatchCreatePosts 批量创建帖子
+func BatchCreatePosts(posts []*models.ParamPostCreate) error {
+	var postModels []*models.Post
+	for _, p := range posts {
+		postModels = append(postModels, &models.Post{
+			Title:   p.Title,
+			Content: p.Content,
+		})
+	}
+	return sqlite.BatchInsertPosts(postModels)
+}
+
+// GetPostByID 获取单个帖子
+func GetPostByID(postID int64) (*models.Post, error) {
+	return sqlite.GetPostByID(postID)
+}
+
+// ListPostsByRange 分页获取帖子列表
+func ListPostsByRange(offset, limit int) ([]*models.Post, error) {
+	return sqlite.ListPostsByRange(offset, limit)
+}
+
+// UpdatePost 更新帖子，需校验权限
+func UpdatePost(p *models.ParamPostUpdate, userID int64) error {
+	post, err := sqlite.GetPostByID(p.PostID)
+	if err != nil {
+		return err
+	}
+	if post.AuthorID != userID {
+		return ErrNoPermission
+	}
+	post.Title = p.Title
+	post.Content = p.Content
+	return sqlite.UpdatePost(post)
+}
+
+// DeletePost 删除帖子，需校验权限
+func DeletePost(postID int64, userID int64) error {
+	post, err := sqlite.GetPostByID(postID)
+	if err != nil {
+		return err
+	}
+	if post.AuthorID != userID {
+		return ErrNoPermission
+	}
+	return sqlite.DeletePost(postID)
+}
+
+// TODO: 可根据需要扩展更多业务逻辑，如点赞、评论等 

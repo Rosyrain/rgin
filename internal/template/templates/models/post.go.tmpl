@@ -1,0 +1,17 @@
+package models
+
+// Post 帖子基本信息
+// 字段与数据库表结构保持一致，便于扩展
+// json tag 用于序列化，db tag 用于数据库映射
+// 注意：如需扩展字段请同步修改 sql 文件
+
+type Post struct {
+	ID         int64  `db:"id" json:"id"`                  // 主键，自增
+	PostID     int64  `db:"post_id" json:"post_id"`        // 帖子id
+	Title      string `db:"title" json:"title"`            // 标题
+	Content    string `db:"content" json:"content"`        // 内容
+	AuthorID   int64  `db:"author_id" json:"author_id"`    // 作者用户id
+	Status     int    `db:"status" json:"status"`          // 帖子状态
+	CreateTime string `db:"create_time" json:"create_time"`// 创建时间
+	UpdateTime string `db:"update_time" json:"update_time"`// 更新时间
+} 

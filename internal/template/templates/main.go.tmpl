@@ -21,8 +21,9 @@ import (
 	"log"
 	"net/http"
 	"{{ .Name }}/controller"
-	mysql "{{ .Name }}/dao/mysql"
-	redis "{{ .Name }}/dao/redis"
+	sqlite "{{ .Name }}/dao/sqlite"  // 默认使用 SQLite
+	// mysql "{{ .Name }}/dao/mysql"  // MySQL 支持（默认关闭）
+	// redis "{{ .Name }}/dao/redis"  // Redis 支持（默认关闭）
 	logger "{{ .Name }}/logger"
 	snowflake "{{ .Name }}/pkg/snowflask"
 	routes "{{ .Name }}/router"
@@ -45,6 +46,7 @@ func main() {
 	//}
 
 	// 1. 加载配置
+	// setting.Init(os.Args[1]) 通过命令行参数加载配置文件,需要修改settings相关内容
 	if err := settings.Init(); err != nil {
 		fmt.Printf("init settings failed, err:%v\n", err)
 		return
@@ -60,26 +62,41 @@ func main() {
 	defer zap.L().Sync()
 	zap.L().Debug("logger init success...")
 
-	// 3. 初始化MySQL连接
+	// 3. 初始化 SQLite 数据库（仅连接，不自动建表）
+	if err := sqlite.InitDB("./data/app.db"); err != nil {
+		fmt.Printf("init sqlite failed, err:%v\n", err)
+		return
+	}
+	defer sqlite.Close()
+	// 提示：如为首次运行，请手动执行 models/create_table.sql 初始化表结构！
+	// 例如：sqlite3 ./data/app.db < models/create_table.sql
+
+	// 3. 初始化 MySQL 数据库
+	// MySQL 支持（默认关闭）
+	/*
 	if err := mysql.Init(settings.Conf.MySQLConfig); err != nil {
 		fmt.Printf("init mysql failed, err:%v\n", err)
 		return
 	}
 	defer mysql.Close()
+	*/
 
 	// 4. 初始化Redis连接
+	// Redis 支持（默认关闭）
+	/*
 	if err := redis.Init(settings.Conf.RedisConfig); err != nil {
 		fmt.Printf("init redis failed, err:%v\n", err)
 		return
 	}
 	defer redis.Close()
+	*/
 
-	//加载雪花算法配置
+	// 加载雪花算法配置
 	if err := snowflake.Init(settings.Conf.StartTime, settings.Conf.MachineID); err != nil {
 		fmt.Printf("init snowflask failed,err:%#v\n", err)
 	}
 
-	//初始化gin框架内置的校验器使用的翻译器
+	// 初始化gin框架内置的校验器使用的翻译器
 	if err := controller.InitTrans("zh"); err != nil {
 		fmt.Printf("init validator trans failed,err:%#v\n", err)
 	}

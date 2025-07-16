@@ -1,1 +1,29 @@
- 
+package sqlite
+
+import (
+	"database/sql"
+	"{{.ModuleName}}/models"
+)
+
+// InsertUser 插入新用户
+func InsertUser(user *models.User) error {
+	query := `INSERT INTO user (user_id, username, password, email, gender, bio, status) VALUES (?, ?, ?, ?, ?, ?, ?)`
+	_, err := db.Exec(query, user.UserID, user.Username, user.Password, user.Email, user.Gender, user.Bio, user.Status)
+	return err
+}
+
+// GetUserByUsername 根据用户名查询用户
+func GetUserByUsername(username string) (*models.User, error) {
+	query := `SELECT id, user_id, username, password, email, gender, bio, status, create_time, update_time FROM user WHERE username = ?`
+	user := new(models.User)
+	err := db.QueryRow(query, username).Scan(&user.ID, &user.UserID, &user.Username, &user.Password, &user.Email, &user.Gender, &user.Bio, &user.Status, &user.CreateTime, &user.UpdateTime)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrNoRows // TODO: 定义 ErrNoRows
+		}
+		return nil, err
+	}
+	return user, nil
+}
+
+// TODO: 可根据需要扩展更多方法，如 UpdateUser、DeleteUser 等 

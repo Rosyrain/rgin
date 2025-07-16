@@ -6,11 +6,12 @@ import (
 	"log"
 	"path/filepath"
 	"os"
+	"go.uber.org/zap"
 )
 
 var db *sql.DB
 
-// InitDB 初始化 SQLite 数据库连接
+// InitDB 初始化 SQLite 数据库连接（仅连接，不自动建表）
 func InitDB(dbPath string) error {
 	// 确保数据库目录存在
 	if err := os.MkdirAll(filepath.Dir(dbPath), 0755); err != nil {
@@ -29,18 +30,10 @@ func InitDB(dbPath string) error {
 		return err
 	}
 
-	// 初始化表结构
-	if err = initTables(); err != nil {
-		return err
-	}
-
-	log.Println("SQLite database initialized successfully")
+	zap.L().Info("SQLite database connected successfully")
+	// 提示：如为首次运行，请手动执行 models/create_table.sql 初始化表结构！
+	// 例如：sqlite3 ./data/app.db < models/create_table.sql
 	return nil
-}
-
-// GetDB 获取数据库连接
-func GetDB() *sql.DB {
-	return db
 }
 
 // Close 关闭数据库连接
@@ -51,16 +44,4 @@ func Close() error {
 	return nil
 }
 
-// initTables 初始化表结构
-func initTables() error {
-	// 读取 SQL 文件
-	sqlFile := "models/create_table.sql"
-	content, err := os.ReadFile(sqlFile)
-	if err != nil {
-		return err
-	}
-
-	// 执行 SQL 语句
-	_, err = db.Exec(string(content))
-	return err
-} 
+// 注：表结构初始化需用户手动执行建表 SQL，避免每次启动清空数据 

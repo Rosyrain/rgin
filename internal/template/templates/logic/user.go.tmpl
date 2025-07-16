@@ -1,48 +1,47 @@
 package logic
 
 import (
-	"{{.ModuleName}}/dao/mysql"
+	"errors"
+	"{{.ModuleName}}/dao/sqlite"
 	"{{.ModuleName}}/models"
 )
 
-// SignUp 用户注册
+var ErrNoPermission = errors.New("no permission to operate this post")
+
+// SignUp 用户注册逻辑
 func SignUp(p *models.ParamSignUp) error {
-	// 1. 检查用户是否存在
-	if err := mysql.CheckUserExist(p.Username); err != nil {
+	// 1. 检查用户名是否已存在
+	existing, err := sqlite.GetUserByUsername(p.Username)
+	if err != nil && !errors.Is(err, sqlite.ErrNoRows) {
 		return err
 	}
-
-	// 2. 生成用户ID
-	// 提示: 可以使用 snowflake 包生成分布式唯一ID
-	// 参考示例代码中的 pkg/snowflake/snowflake.go
-	userID := int64(0) // 替换为你的ID生成方式
-
-	// 3. 创建用户
-	user := &models.User{
-		UserID:   userID,
-		Username: p.Username,
-		Password: p.Password,
+	if existing != nil {
+		return ErrUserExist // TODO: 定义 ErrUserExist 错误
 	}
-
-	// 4. 保存到数据库
-	return mysql.InsertUser(user)
-}
-
-// Login 用户登录
-func Login(p *models.ParamLogin) (token string, err error) {
+	// 2. 插入新用户（此处可做密码加密等处理）
 	user := &models.User{
 		Username: p.Username,
 		Password: p.Password,
 	}
-
-	// 1. 验证用户名和密码
-	if err := mysql.Login(user); err != nil {
-		return "", err
-	}
-
-	// 2. 生成认证token
-	// 提示: 可以使用 jwt 包生成用户认证token
-	// 参考示例代码中的 pkg/jwt/jwt.go
-	return "your-token-here", nil
+	return sqlite.InsertUser(user)
 }
+
+// Login 用户登录逻辑
+func Login(p *models.ParamLogin) error {
+	user, err := sqlite.GetUserByUsername(p.Username)
+	if err != nil {
+		return err
+	}
+	if user.Password != p.Password {
+		return ErrInvalidPassword // TODO: 定义 ErrInvalidPassword
+	}
+	return nil
+}
+
+// GetUserInfo 获取用户信息
+func GetUserInfo(username string) (*models.User, error) {
+	return sqlite.GetUserByUsername(username)
+}
+
+// TODO: 可根据需要扩展更多业务逻辑，如用户信息更新等
 

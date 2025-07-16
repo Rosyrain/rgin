@@ -1,8 +1,19 @@
 package models
 
 // User 用户基本信息
+// 字段与数据库表结构保持一致，便于扩展
+// json tag 用于序列化，db tag 用于数据库映射
+// 注意：如需扩展字段请同步修改 sql 文件
+
 type User struct {
-	UserID   int64  `db:"user_id" json:"user_id,string"`
-	Username string `db:"username" json:"username"`
-	Password string `db:"password" json:"-"`
+	ID        int64  `db:"id" json:"id"`                // 主键，自增
+	UserID    int64  `db:"user_id" json:"user_id"`      // 用户id
+	Username  string `db:"username" json:"username"`    // 用户名
+	Password  string `db:"password" json:"-"`           // 用户密码
+	Email     string `db:"email" json:"email"`          // 用户邮箱
+	Gender    int    `db:"gender" json:"gender"`        // 用户性别
+	Bio       string `db:"bio" json:"bio"`              // 个人简介
+	Status    int    `db:"status" json:"status"`        // 用户状态
+	CreateTime string `db:"create_time" json:"create_time"` // 创建时间
+	UpdateTime string `db:"update_time" json:"update_time"` // 更新时间
 }

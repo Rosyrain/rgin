@@ -17,9 +17,12 @@ func SetupRouter(mode string) *gin.Engine {
 		gin.SetMode(gin.ReleaseMode)
 	}
 	r := gin.New()
-	//r.Use(logger.GinLogger(), logger.GinRecovery(true), middlewares.RateLimitMiddleware(2*time.Second, 1))
+	// 注册全局中间件
+	// 如需启用限流、CORS、鉴权等功能，请取消下方注释并根据需要调整参数
+	// r.Use(middlewares.RateLimitMiddleware(2*time.Second, 1)) // 令牌桶限流
 	r.Use(logger.GinLogger(), logger.GinRecovery(true))
-	r.Use(middlewares.CORS())
+	r.Use(middlewares.CORS()) // 跨域支持，如不需要可注释
+	// TODO: 如需集成JWT鉴权，请在需要的路由组添加 middlewares.JWTAuthMiddleware()
 
 	//r.LoadHTMLFiles("templates/index.html")
 	//r.Static("/static", "./static")
@@ -30,24 +33,24 @@ func SetupRouter(mode string) *gin.Engine {
 	//注册业务路由
 	v1 := r.Group("/api/v1")
 	{
-
-		//注册
+		// 用户相关
 		v1.POST("/signup", controller.SignUpHandler)
-
-		//登录
 		v1.POST("/login", controller.LoginHandler)
-
-		//获取用户信息 param
 		v1.GET("/user/:username", controller.UserInfoHandler)
 
+		// 无需鉴权的帖子相关路由
+		v1.GET("/post/:post_id", controller.GetPostByIDHandler)        // 获取单个帖子
+		v1.GET("/posts", controller.ListPostsByRangeHandler)           // 分页获取帖子列表
 	}
 
-	v1.Use(middlewares.JWTAuthMiddleware()) //应用JWT认证中间件
+	// 需要鉴权的帖子相关路由（必须登录）
+	v1Auth := r.Group("/api/v1")
+	v1Auth.Use(middlewares.JWTAuthMiddleware())
 	{
-		/*
-			// 浏览记录
-			v1.GET("/history",controller.UserHistoryHandler)
-		*/
+		v1Auth.POST("/post", controller.CreatePostHandler)                // 创建帖子
+		v1Auth.POST("/posts/batch", controller.BatchCreatePostsHandler)    // 批量创建帖子
+		v1Auth.PUT("/post", controller.UpdatePostHandler)                  // 更新帖子
+		v1Auth.DELETE("/post/:post_id", controller.DeletePostHandler)      // 删除帖子
 	}
 
 	pprof.Register(r) //注册pprof相关路由

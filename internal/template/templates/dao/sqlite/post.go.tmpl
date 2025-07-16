@@ -1,0 +1,98 @@
+package sqlite
+
+import (
+	"database/sql"
+	"{{.ModuleName}}/models"
+	"go.uber.org/zap"
+)
+
+// InsertPost 插入单条帖子
+func InsertPost(post *models.Post) error {
+	query := `INSERT INTO post (post_id, title, content, author_id, status) VALUES (?, ?, ?, ?, ?)`
+	_, err := db.Exec(query, post.PostID, post.Title, post.Content, post.AuthorID, post.Status)
+	if err != nil {
+		zap.L().Error("InsertPost failed", zap.Error(err))
+	}
+	return err
+}
+
+// BatchInsertPosts 批量插入帖子
+func BatchInsertPosts(posts []*models.Post) error {
+	query := `INSERT INTO post (post_id, title, content, author_id, status) VALUES (?, ?, ?, ?, ?)`
+	tx, err := db.Begin()
+	if err != nil {
+		zap.L().Error("BatchInsertPosts begin tx failed", zap.Error(err))
+		return err
+	}
+	stmt, err := tx.Prepare(query)
+	if err != nil {
+		zap.L().Error("BatchInsertPosts prepare failed", zap.Error(err))
+		tx.Rollback()
+		return err
+	}
+	defer stmt.Close()
+	for _, post := range posts {
+		if _, err := stmt.Exec(post.PostID, post.Title, post.Content, post.AuthorID, post.Status); err != nil {
+			zap.L().Error("BatchInsertPosts exec failed", zap.Error(err))
+			tx.Rollback()
+			return err
+		}
+	}
+	return tx.Commit()
+}
+
+// GetPostByID 根据ID查询帖子
+func GetPostByID(postID int64) (*models.Post, error) {
+	query := `SELECT id, post_id, title, content, author_id, status, create_time, update_time FROM post WHERE post_id = ?`
+	post := new(models.Post)
+	err := db.QueryRow(query, postID).Scan(&post.ID, &post.PostID, &post.Title, &post.Content, &post.AuthorID, &post.Status, &post.CreateTime, &post.UpdateTime)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, ErrNoRows // TODO: 定义 ErrNoRows
+		}
+		zap.L().Error("GetPostByID failed", zap.Error(err))
+		return nil, err
+	}
+	return post, nil
+}
+
+// ListPostsByRange 范围查询帖子（分页）
+func ListPostsByRange(offset, limit int) ([]*models.Post, error) {
+	query := `SELECT id, post_id, title, content, author_id, status, create_time, update_time FROM post ORDER BY create_time DESC LIMIT ? OFFSET ?`
+	rows, err := db.Query(query, limit, offset)
+	if err != nil {
+		zap.L().Error("ListPostsByRange query failed", zap.Error(err))
+		return nil, err
+	}
+	defer rows.Close()
+	var posts []*models.Post
+	for rows.Next() {
+		post := new(models.Post)
+		if err := rows.Scan(&post.ID, &post.PostID, &post.Title, &post.Content, &post.AuthorID, &post.Status, &post.CreateTime, &post.UpdateTime); err != nil {
+			zap.L().Error("ListPostsByRange scan failed", zap.Error(err))
+			return nil, err
+		}
+		posts = append(posts, post)
+	}
+	return posts, nil
+}
+
+// UpdatePost 更新帖子
+func UpdatePost(post *models.Post) error {
+	query := `UPDATE post SET title = ?, content = ?, status = ?, update_time = CURRENT_TIMESTAMP WHERE post_id = ?`
+	_, err := db.Exec(query, post.Title, post.Content, post.Status, post.PostID)
+	if err != nil {
+		zap.L().Error("UpdatePost failed", zap.Error(err))
+	}
+	return err
+}
+
+// DeletePost 删除帖子
+func DeletePost(postID int64) error {
+	query := `DELETE FROM post WHERE post_id = ?`
+	_, err := db.Exec(query, postID)
+	if err != nil {
+		zap.L().Error("DeletePost failed", zap.Error(err))
+	}
+	return err
+} 
