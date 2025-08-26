@@ -38,6 +38,7 @@ go run main.go #启动基础项目
 │   ├── redis/
 |   └── sqlite/
 ├── example/        # 示例项目（可选,通过--with-example生成）
+|   └── bluebell/
 ├── logger/         # 日志组件
 ├── logic/          # 业务逻辑
 ├── middlewares/    # 中间件（JWT、限流等）
@@ -68,7 +69,7 @@ rgin/
 │   ├── project/      # 项目结构定义
 │   └── template/     # 模板加载与渲染
 │       ├── templates/  # 各类模板文件(放在此处是为了与embed进行适配)
-            ├── main.go.tmpl
+│           ├── main.go.tmpl
             ...
 │       └── template.go
 ├── main.go
