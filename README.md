@@ -27,44 +27,49 @@ sqlite3 ./data/app.db < models/create_table.sql #创建sqlite数据库并建表
 go run main.go #启动基础项目
 ```
 
-生成的开发脚手架参考了七米老师的bluebell项目  架构如下(需要设置相关配置mysql/redis便可启动预留的示例)：
+生成的脚手架结构参考了七米老师的`bluebell`项目，支持 MySQL/Redis/SQLite 等多种数据库，内置 JWT 认证、限流等功能。
+
 
 ```
-├─conf			//存放配置文件
-├─controller	//句柄函数
-├─dao			//数据库
-│  ├─mysql		//mysql
-│  └─redis		//redis
-|─example       //示例项目(blubell),通过init --with-example生成
-├─logger		//日志加载
-├─logic			//逻辑处理函数
-├─middlewares	//中间件，已配置jwt认证，令牌桶限流
-├─models		//模型定义
-├─pkg			//第三方库调用，jwt的具体相关功能实现，snowflask算法
-│  ├─jwt
-│  └─snowflask
-├─router		//路由设置
-├─settings		//配置加载
-├─main.go		//启动入口，相关配置初始化
-├─DOckerfile    //docker部署
-└─wait-for.sh   //docker部署时调用的验证脚本
+├── conf/           # 配置文件
+├── controller/     # 控制器/处理函数
+├── dao/            # 数据访问层(根据需求可选)
+│   ├── mysql/
+│   ├── redis/
+|   └── sqlite/
+├── example/        # 示例项目（可选,通过--with-example生成）
+├── logger/         # 日志组件
+├── logic/          # 业务逻辑
+├── middlewares/    # 中间件（JWT、限流等）
+├── models/         # 数据模型
+├── pkg/            # 第三方库封装（jwt、snowflask等）
+│   ├── jwt/
+│   └── snowflask/
+├── router/         # 路由注册
+├── settings/       # 配置加载
+├── main.go         # 启动入口
+├── Dockerfile      # Docker 部署
+└── wait-for.sh     # Docker 启动检测脚本
 ```
 
-### 项目结构设计(预设计)
+
+### 1、rgin 工具自身结构
 
 ```
 rgin/
-├── cmd/                  // 命令行工具入口
-    ├── create.go		  // 子命令create定义
-│   └── root.go			  // 根命令定义
-├── internal/             // 内部实现(功能的具体实现)
-│   ├── generator/        // 代码生成逻辑
-│   │   └── generator.go
-│   ├── project/          // 项目结构定义
-│   │   └── project.go
-│   └── template/         // 模板文件加载
-|       ├──templates/     // 模板文件,放在此处是为了与embed进行适配
-|			├──main.go.tmpl...
+├── cmd/              # 命令行入口及子命令
+│   ├── help.go
+│   ├── init.go
+│   └── root.go
+├── conf/             # 工具自身配置
+├── internal/         # 内部实现
+│   ├── generator/    # 代码生成逻辑
+│   ├── i18n/         # 国际化支持
+│   ├── project/      # 项目结构定义
+│   └── template/     # 模板加载与渲染
+│       ├── templates/  # 各类模板文件(放在此处是为了与embed进行适配)
+            ├── main.go.tmpl
+            ...
 │       └── template.go
 ├── main.go
 ├── go.mod
@@ -72,18 +77,18 @@ rgin/
 └── README.md
 ```
 
-<hr>
-**具体实现思路可参考文章：**
 
-[rgin命令行工具–一键生成gin框架的开发脚手架-CSDN博客](https://blog.csdn.net/meng7000/article/details/145829359)
+---
+**更多说明与实现参考**
 
-[rgin命令行工具–一键生成gin框架的开发脚手架-稀土掘金](https://juejin.cn/spost/7474781404163522611)
+> 下面文章实现内容属于初次搭建时的思路，目前项目结构与初次搭建有较大差距，具体可借助AI理解分析
 
-**参考文献**
+- [CSDN 博客：rgin命令行工具–一键生成gin框架的开发脚手架](https://blog.csdn.net/meng7000/article/details/145829359)
+- [稀土掘金：rgin命令行工具–一键生成gin框架的开发脚手架](https://juejin.cn/spost/7474781404163522611)
 
-[golang常用库包：cli命令行/应用程序生成工具-cobra使用 - 九卷 - 博客园](https://www.cnblogs.com/jiujuan/p/15487918.html)
+**相关资料**
 
-[Template · Go语言中文文档](https://www.topgoer.com/常用标准库/template.html)
-
-[go:embed 用法详解：如何将静态资源文件打包进二进制文件中？ - 阿小信的博客](https://blog.axiaoxin.com/post/go-embed/)
+- [cobra：Go 命令行/应用程序生成工具](https://www.cnblogs.com/jiujuan/p/15487918.html)
+- [Go 标准库 template 文档](https://www.topgoer.com/常用标准库/template.html)
+- [go:embed 用法详解](https://blog.axiaoxin.com/post/go-embed/)
 
